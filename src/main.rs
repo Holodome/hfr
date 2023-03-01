@@ -1,4 +1,7 @@
-use clap::{Parser, Subcommand, ValueEnum};
+use clap::{Parser, Subcommand};
+mod cases;
+
+use cases::Case;
 
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about = None)]
@@ -23,8 +26,8 @@ enum Command {
     },
     /// Canonicalize name
     NameCanon {
-        #[arg(value_enum, default_value_t = NameCanon::default())]
-        canon: NameCanon,
+        #[arg(value_enum, default_value_t = Case::default())]
+        canon: Case,
         files: Vec<String>,
     },
     /// Change only basename
@@ -32,21 +35,6 @@ enum Command {
         file: Vec<String>,
         new_basename: String,
     },
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, ValueEnum, Default)]
-enum NameCanon {
-    /// snake_case
-    #[default]
-    SnakeCase,
-    /// kebab-case
-    KebabCase,
-    /// PascalCase
-    PascalCase,
-    /// SCREAMING_SNAKE_CASE
-    ScreamingSnakeCase,
-    /// camelCase
-    CamelCase,
 }
 
 fn main() {
