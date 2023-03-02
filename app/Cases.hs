@@ -57,8 +57,7 @@ joinCamelCase [] = ""
 joinCamelCase (car:cdr) = car ++ joinPascalCase cdr
 
 upperCaseIdxs :: String -> [Int]
-upperCaseIdxs str =
-  map fst $ filter (\(_, c) -> isUpper c) $ enumerate str
+upperCaseIdxs str = map fst $ filter (\(_, c) -> isUpper c) $ enumerate str
 
 enumerate :: [a] -> [(Int, a)]
 enumerate = zip [0 ..]
@@ -67,13 +66,9 @@ capitalize :: String -> String
 capitalize it = toUpper (head it) : tail it
 
 splitOn :: Char -> String -> [String]
-splitOn a str =
-  words
-    [ if c == a
-      then ' '
-      else c
-    | c <- str
-    ]
+splitOn c str = part : splitOn c (dropWhile (== c) $ drop (length part) str)
+  where
+    part = takeWhile (/= c) str
 
 joinWith :: Char -> [String] -> String
 joinWith _ [] = ""
@@ -81,7 +76,6 @@ joinWith c (car:cdr) = car ++ [c] ++ joinWith c cdr
 
 splitByIdxs :: [Int] -> String -> [String]
 splitByIdxs idxs name =
-    [ map toLower $ take (end - start) (drop start name)
-    | (start, end) <- zip idxs $ tail idxs ++ [length name]
-    ]
-
+  [ map toLower $ take (end - start) (drop start name)
+  | (start, end) <- zip idxs $ tail idxs ++ [length name]
+  ]
