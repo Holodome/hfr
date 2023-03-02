@@ -1,3 +1,4 @@
+module Cases where
 import Data.Char
 
 enumerate :: [a] -> [(Int, a)]
@@ -28,4 +29,3 @@ join_pascal_case :: [String] -> String
 join_pascal_case [] = ""
 join_pascal_case (car:cdr) = (capitalize car) ++ join_pascal_case cdr
 
-main = print (split_pascal_case "PascalCase")
