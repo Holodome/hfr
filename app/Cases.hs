@@ -72,6 +72,7 @@ splitOn c str = part : splitOn c (dropWhile (== c) $ drop (length part) str)
 
 joinWith :: Char -> [String] -> String
 joinWith _ [] = ""
+joinWith _ [car] = car
 joinWith c (car:cdr) = car ++ [c] ++ joinWith c cdr
 
 splitByIdxs :: [Int] -> String -> [String]
