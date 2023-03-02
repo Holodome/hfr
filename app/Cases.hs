@@ -1,31 +1,65 @@
 module Cases where
+
 import Data.Char
 
-enumerate :: [a] -> [(Int, a)]
-enumerate it = zip [0..] it
+data Case
+  = KebabCase
+  | PascalCase
+  deriving (Enum)
 
-capitalize :: String -> String 
-capitalize it = (++) [toUpper (head it)] (tail it)
+split :: Case -> String -> [String]
+split KebabCase = splitKebabCase
+split PascalCase = split_pascal_case
 
-upper_case_idxs :: String -> [Int]
-upper_case_idxs str = 
-    map (\(i, _) -> i) (filter (\(_, c) -> isUpper c) (enumerate str))
+join :: Case -> [String] -> String
+join KebabCase = joinKebabCase
+join PascalCase = joinPascalCase
 
-split_kebab_case :: String -> [String]
-split_kebab_case name = words [ if c == '-' then ' ' else c | c <- name ]
+splitKebabCase :: String -> [String]
+splitKebabCase = splitOn '-'
 
-join_kebab_case :: [String] -> String 
-join_kebab_case [] = ""
-join_kebab_case (car:cdr) = car ++ join_kebab_case cdr
+joinKebabCase :: [String] -> String
+joinKebabCase = joinWith '-'
 
 split_pascal_case :: String -> [String]
-split_pascal_case name = 
-    map (map toLower)
-    [ take (end - start) (drop start name) | 
-        (start, end) <- zip idxs ((tail idxs) ++ [length name]) ]
-    where idxs = upper_case_idxs name
+split_pascal_case name =
+  map
+    (map toLower)
+    [ take (end - start) (drop start name)
+    | (start, end) <- zip idxs $ tail idxs ++ [length name]
+    ]
+  where
+    idxs = upperCaseIdxs name
 
-join_pascal_case :: [String] -> String
-join_pascal_case [] = ""
-join_pascal_case (car:cdr) = (capitalize car) ++ join_pascal_case cdr
+joinPascalCase :: [String] -> String
+joinPascalCase [] = ""
+joinPascalCase (car:cdr) = capitalize car ++ joinPascalCase cdr
 
+splitSnakeCase :: String -> [String]
+splitSnakeCase = splitOn '_'
+
+joinSnakeCase :: [String] -> String
+joinSnakeCase = joinWith '_'
+
+upperCaseIdxs :: String -> [Int]
+upperCaseIdxs str =
+  map (\(i, _) -> i) $ filter (\(_, c) -> isUpper c) $ enumerate str
+
+enumerate :: [a] -> [(Int, a)]
+enumerate it = zip [0 ..] it
+
+capitalize :: String -> String
+capitalize it = [toUpper $ head it] ++ tail it
+
+splitOn :: Char -> String -> [String]
+splitOn a str =
+  words
+    [ if c == a
+      then ' '
+      else c
+    | c <- str
+    ]
+
+joinWith :: Char -> [String] -> String
+joinWith _ [] = ""
+joinWith c (car:cdr) = car ++ [c] ++ joinWith c cdr
