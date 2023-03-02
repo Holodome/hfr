@@ -5,41 +5,41 @@ import Data.Char
 data Case
   = KebabCase
   | PascalCase
+  | SnakeCase
+  | CamelCase
+  | ScreamingSnakeCase
+  | ScreamingKebabCase
   deriving (Enum)
 
 split :: Case -> String -> [String]
-split KebabCase = splitKebabCase
-split PascalCase = split_pascal_case
+split KebabCase = splitOn '-'
+split PascalCase = splitPascalCase
+split SnakeCase = splitOn '_'
+split CamelCase = splitCamelCase
+split ScreamingSnakeCase = split SnakeCase . map toLower
+split ScreamingKebabCase = split KebabCase . map toLower
 
 join :: Case -> [String] -> String
-join KebabCase = joinKebabCase
+join KebabCase = joinWith '-'
 join PascalCase = joinPascalCase
+join SnakeCase = joinWith '_'
+join CamelCase = joinCamelCase
+join ScreamingSnakeCase = map toUpper . join SnakeCase
+join ScreamingKebabCase = map toUpper . join KebabCase
 
-splitKebabCase :: String -> [String]
-splitKebabCase = splitOn '-'
-
-joinKebabCase :: [String] -> String
-joinKebabCase = joinWith '-'
-
-split_pascal_case :: String -> [String]
-split_pascal_case name =
-  map
-    (map toLower)
-    [ take (end - start) (drop start name)
-    | (start, end) <- zip idxs $ tail idxs ++ [length name]
-    ]
-  where
-    idxs = upperCaseIdxs name
+splitPascalCase :: String -> [String]
+splitPascalCase name = splitByIdxs (upperCaseIdxs name) name
 
 joinPascalCase :: [String] -> String
 joinPascalCase [] = ""
 joinPascalCase (car:cdr) = capitalize car ++ joinPascalCase cdr
 
-splitSnakeCase :: String -> [String]
-splitSnakeCase = splitOn '_'
+splitCamelCase :: String -> [String]
+splitCamelCase name = splitByIdxs ([0] ++ upperCaseIdxs name) name
 
-joinSnakeCase :: [String] -> String
-joinSnakeCase = joinWith '_'
+joinCamelCase :: [String] -> String
+joinCamelCase [] = ""
+joinCamelCase (car:cdr) = car ++ joinPascalCase cdr
 
 upperCaseIdxs :: String -> [Int]
 upperCaseIdxs str =
@@ -63,3 +63,11 @@ splitOn a str =
 joinWith :: Char -> [String] -> String
 joinWith _ [] = ""
 joinWith c (car:cdr) = car ++ [c] ++ joinWith c cdr
+
+splitByIdxs :: [Int] -> String -> [String]
+splitByIdxs idxs name =
+  map
+    (map toLower)
+    [ take (end - start) (drop start name)
+    | (start, end) <- zip idxs $ tail idxs ++ [length name]
+    ]
