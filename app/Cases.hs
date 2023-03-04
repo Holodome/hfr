@@ -1,4 +1,9 @@
-module Cases where
+module Cases
+  ( Case
+  , getCase
+  , split
+  , join
+  ) where
 
 import Data.Char
 
@@ -9,7 +14,7 @@ data Case
   | CamelCase
   | ScreamingSnakeCase
   | ScreamingKebabCase
-  deriving (Enum)
+  deriving (Enum, Show)
 
 getCase :: String -> Case
 getCase str
