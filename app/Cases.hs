@@ -1,5 +1,5 @@
 module Cases
-  ( Case
+  ( Case(..)
   , getCase
   , split
   , join

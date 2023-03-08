@@ -3,8 +3,8 @@
 
 module Main where
 
-import Prelude hiding (FilePath)
-import Turtle
+import Data.Text
+import Options.Applicative
 
 import Cases
 
@@ -12,33 +12,64 @@ data Command
   = CommandReplace
       { old :: Text
       , new :: Text
-      , file :: FilePath
+      , file :: [FilePath]
       }
   | CommandExtChange
       { old :: Text
       , new :: Text
-      , files :: FilePath
+      , files :: [FilePath]
       }
-  -- | CommandCanonicalize
-  --     { canon :: Cases.Case
-  --     , files :: [FilePath]
-  --     }
+  | CommandCanonicalize
+      { canon :: Cases.Case
+      , files :: [FilePath]
+      }
   deriving (Show)
 
-parseCommand :: Parser Command
-parseCommand =
-  subcommand
-    "replace"
-    "Replace string in filenames"
-    (CommandReplace <$> argText "old" "String to replace" <*>
-     argText "new" "String to replace to" <*>
-     argPath "path" "Filepath to replace in") <|>
-  subcommand
-    "ext-change"
-    "Change extension"
-    (CommandReplace <$> argText "old" "String to replace" <*>
-     argText "new" "String to replace to" <*>
-     argPath "path" "Filepath to replace in")
+parseCases :: Parser Cases.Case
+parseCases =
+  subparser
+    (command "pascal" (info (pure Cases.PascalCase) (progDesc "PascalCase")) <>
+     command "kebab" (info (pure Cases.KebabCase) (progDesc "kebab-case")) <>
+     command "camel" (info (pure Cases.KebabCase) (progDesc "camelCase")) <>
+     command
+       "skebab"
+       (info (pure Cases.KebabCase) (progDesc "SCREAMING-KEBAB-CASE")) <>
+     command
+       "ssnake"
+       (info (pure Cases.KebabCase) (progDesc "SCREAMING_SNAKE_CASE")) <>
+     command "snake" (info (pure Cases.KebabCase) (progDesc "snake_case")))
+
+replaceCmd :: Parser Command
+replaceCmd =
+  CommandReplace <$> argument str (metavar "OLD") <*>
+  argument str (metavar "NEW") <*>
+  many (argument str (metavar "TARGET..."))
+
+extChangeCmd :: Parser Command
+extChangeCmd =
+  CommandExtChange <$> argument str (metavar "OLD") <*>
+  argument str (metavar "NEW") <*>
+  many (argument str (metavar "TARGET..."))
+
+canonCmd :: Parser Command
+canonCmd =
+  CommandCanonicalize <$> parseCases <*>
+  many (argument str (metavar "TARGET..."))
+
+sample :: Parser Command
+sample =
+  subparser
+    (command "rep" (info replaceCmd (progDesc "replace")) <>
+     command "ext" (info extChangeCmd (progDesc "change extensions")) <>
+     command "canon" (info canonCmd (progDesc "change name canon")))
+
+opts :: ParserInfo Command
+opts =
+  info
+    (sample <**> helper)
+    (fullDesc <> progDesc "Filename refactoring tool" <> header "hfr")
 
 main :: IO ()
-main = putStrLn "Hello, Haskell!"
+main = do
+  options <- execParser opts
+  print options
