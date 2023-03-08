@@ -1,5 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE NamedFieldPuns #-}
 
 module Main where
 
@@ -7,12 +8,15 @@ import Data.Text
 import Options.Applicative
 
 import Cases
+import Control.Monad
+import GHC.IO (unsafeInterleaveIO)
+import System.Directory
 
 data Command
   = CommandReplace
       { old :: Text
       , new :: Text
-      , file :: [FilePath]
+      , files :: [FilePath]
       }
   | CommandExtChange
       { old :: Text
@@ -68,6 +72,24 @@ opts =
   info
     (sample <**> helper)
     (fullDesc <> progDesc "Filename refactoring tool" <> header "hfr")
+
+recursiveListDirectoriesOrFiles :: [FilePath] -> IO [FilePath]
+recursiveListDirectoriesOrFiles all' = do
+  dirs <- filterM doesDirectoryExist all'
+  files <- filterM doesFileExist all'
+  case dirs of
+    [] -> pure files
+    ds -> do
+      next <- unsafeInterleaveIO $ foldMap recursiveListDirectory ds
+      pure $ files ++ next
+
+recursiveListDirectory :: FilePath -> IO [FilePath]
+recursiveListDirectory path =
+  listDirectory path >>= recursiveListDirectoriesOrFiles
+
+execCommand :: Command -> IO [FilePath]
+execCommand CommandReplace {old, new, files} =
+  recursiveListDirectoriesOrFiles files
 
 main :: IO ()
 main = do
